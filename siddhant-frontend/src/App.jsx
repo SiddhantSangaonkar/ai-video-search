@@ -1,6 +1,7 @@
 import UploadSection from './components/UploadSection';
 import SearchSection from './components/SearchSection';
 import ResultCard from './components/ResultCard';
+import VideoSection from './components/VideoSection';
 
 export default function App() {
   return (
@@ -17,7 +18,7 @@ export default function App() {
       <SearchSection />
 
       {/* RESULTS GRID */}
-      <div>
+      <div className="mb-10">
         <h3 className="text-lg font-semibold mb-4 text-gray-800">Search Results</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ResultCard />
@@ -25,6 +26,9 @@ export default function App() {
           <ResultCard />
         </div>
       </div>
+
+      {/* VIDEO PLAYER SECTION */}
+      <VideoSection />
 
     </div>
   );
