@@ -1,0 +1,16 @@
+venv/
+__pycache__/
+*.pyc
+.env
+
+# Whisper / AI outputs
+*.mp3
+*.wav
+*.mp4
+
+# Model/cache files
+.cache/
+models/
+
+# VS Code
+.vscode/
