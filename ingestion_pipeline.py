@@ -62,11 +62,34 @@ def run_ingestion_pipeline(audio_path: str, chunk_duration: float = 30.0, overla
 
 if __name__ == "__main__":
     
-    chunks = run_ingestion_pipeline("audio.wav")
+    chunks = run_ingestion_pipeline("Recursion in 100 Seconds.mp3")
     
     print(f"\nSuccessfully generated {len(chunks)} overlapping chunks.")
-    if chunks:
-        print("\n--- Example Data Structure for Chunk 0 ---")
-        print(f"Time: {chunks[0]['start_time']}s -> {chunks[0]['end_time']}s")
-        print(f"Snippet: {chunks[0]['text_snippet']}")
-        print(f"Embedding dimensions: {len(chunks[0]['embedding'])}") # Must be 768
+    # if chunks:
+    #     print("\n--- Example Data Structure for Chunk 0 ---")
+    #     print(f"Time: {chunks[0]['start_time']}s -> {chunks[0]['end_time']}s")
+    #     print(f"Snippet: {chunks[0]['text_snippet']}")
+    #     print(f"Embedding dimensions: {len(chunks[0]['embedding'])}") # Must be 768
+    
+    from qdrant_setup import insert_chunks_to_qdrant,search_and_deduplicate
+
+    print("\nInserting chunks into Qdrant...")
+    insert_chunks_to_qdrant(chunks)
+    print("Insertion complete!")
+    # Example search query
+
+    print("\n--- Semantic Search & Deduplication Testing ---")
+    query = "What is recursion?"
+    query_embedding = SentenceTransformer("all-mpnet-base-v2").encode(query).tolist()
+
+    # Execute the deduplicated search
+    clean_results = search_and_deduplicate(
+        query_vector=query_embedding, 
+        fetch_limit=10, 
+        time_threshold=15.0, 
+        final_limit=3
+    )
+
+    print("\nSearch Results:")
+    for idx, result in enumerate(clean_results):
+        print(f"Result {idx + 1}: [{result['start_time']}s] Score: {result['score']} -> {result['text']}")
