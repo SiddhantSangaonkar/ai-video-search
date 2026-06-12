@@ -598,12 +598,19 @@ export default function App() {
     }
   };
 
-  const handleJumpToTime = (timestamp) => {
-    const [minutes, seconds] = timestamp.split(':').map(Number);
-    const totalSeconds = (minutes * 60) + seconds;
+  // const handleJumpToTime = (timestamp) => {
+  //   const [minutes, seconds] = timestamp.split(':').map(Number);
+  //   const totalSeconds = (minutes * 60) + seconds;
+  //   if (playerRef.current) {
+  //     playerRef.current.currentTime = totalSeconds;
+  //     playerRef.current.play();
+  //   }
+  // };
+
+  const handleJumpToTime = (timeInSeconds) => {
     if (playerRef.current) {
-      playerRef.current.currentTime = totalSeconds;
-      playerRef.current.play();
+      playerRef.current.currentTime = timeInSeconds; 
+      playerRef.current.play(); 
     }
   };
 
@@ -692,7 +699,7 @@ export default function App() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {searchResults.map((result) => (
                 <ResultCard
                   key={result.id}
@@ -701,7 +708,20 @@ export default function App() {
                   onClick={() => handleJumpToTime(result.timestamp)}
                 />
               ))}
-            </div>
+            </div> */}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  {searchResults.map((result) => (
+    <ResultCard 
+      key={result.id} 
+      text={result.text} 
+      startTime={result.start_time}
+      endTime={result.end_time}
+      score={result.score}
+      onClick={() => handleJumpToTime(result.start_time)} 
+    />
+  ))}
+</div>
           </div>
 
           {/* Central Video Player */}
