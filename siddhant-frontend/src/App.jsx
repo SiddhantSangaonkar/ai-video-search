@@ -615,7 +615,7 @@ export default function App() {
         <IntroPage onStart={() => setCurrentView('upload')} />
       )}
 
-      {/* PAGE 2: UPLOAD */}
+      {/* PAGE 2: UPLOAD
       {currentView === 'upload' && (
         <div className="max-w-4xl mx-auto pt-10">
           <button onClick={() => setCurrentView('intro')} className="text-slate-500 hover:text-blue-400 mb-4 px-4 tracking-widest text-sm transition-colors">
@@ -625,6 +625,28 @@ export default function App() {
             onVideoSelect={handleVideoSelected}
             onUploadSuccess={() => setCurrentView('search')}
           />
+        </div>
+      )} */}
+
+      {/* PAGE 2: UPLOAD */}
+      {currentView === 'upload' && (
+        <div className="w-full pt-10 px-4">
+          
+          {/* This wrapper is now max-w-2xl to perfectly align with the Upload Card below it */}
+          <div className="w-full max-w-2xl mx-auto flex justify-start">
+            <button 
+              onClick={() => setCurrentView('intro')} 
+              className="text-slate-500 hover:text-blue-400 tracking-widest text-sm transition-colors flex items-center gap-2"
+            >
+              <span>←</span> BACK TO SYSTEM
+            </button>
+          </div>
+
+          <UploadSection 
+            onVideoSelect={handleVideoSelected} 
+            onUploadSuccess={() => setCurrentView('search')} 
+          />
+          
         </div>
       )}
 
