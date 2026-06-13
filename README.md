@@ -1,106 +1,123 @@
-# AI Video Search Engine Backend
+# AI Video Search Engine - Backend
 
-Sarna backend scope completed through Week 5 from the project specification.
+Backend services for the AI Video Search Engine project.
 
-## Services
+The backend handles video uploads, metadata storage, background processing, transcript management, and search APIs. It is designed so that Whisper, Sentence Transformers, CLIP, and Qdrant-based semantic search can be integrated without changing the public API.
 
-`docker compose up --build` starts:
+## Tech Stack
 
-- FastAPI backend on `http://localhost:8000`
-- PostgreSQL on port `5432`
-- Redis on port `6379`
-- Celery worker for upload processing jobs
-- Qdrant on `http://localhost:6333`
+* FastAPI
+* PostgreSQL
+* SQLAlchemy
+* Redis
+* Celery
+* Qdrant
+* Docker Compose
+* FFmpeg
 
-## Implemented Backend Scope
+## Features
 
-### Week 1
+* Video upload and storage
+* PostgreSQL metadata management
+* Background processing with Celery
+* Job and processing status tracking
+* Transcript segment management
+* Search API for timestamp retrieval
+* Swagger/OpenAPI documentation
+* Dockerized local development environment
 
-- FastAPI server with Uvicorn
-- Swagger docs at `http://localhost:8000/docs`
-- Base APIs: `GET /`, `POST /upload`, `POST /search`
-- PostgreSQL SQLAlchemy setup
-- Tables: `videos`, `transcript_segments`
+## Running the Project
 
-### Week 2
+Prerequisites:
 
-- Real video upload endpoint
-- Saves videos into `uploads/`
-- Stores filename, file size, content type, upload time, and status in PostgreSQL
-- Returns `video_id` and Celery `job_id`
+* Docker Desktop
+* Docker Compose
 
-### Week 3
+Start all services:
 
-- `POST /search` receives `video_id`, `query`, and `limit`
-- Returns timestamps, transcript snippets, and confidence scores
-- Ranking uses stored segment score plus keyword overlap until Qdrant semantic search is plugged in
-
-### Week 4
-
-- `GET /status/{video_id}` endpoint
-- Better error handling for missing videos, invalid uploads, invalid timestamps, failed jobs, and not-ready searches
-- Clear response schemas for Swagger/Postman testing
-
-### Week 5
-
-- Docker Compose starts the full backend stack in one command
-- Redis + Celery worker added for background processing
-- Qdrant service added for AI/ML integration
-- FFmpeg installed inside the backend image for preprocessing integration
-- Uploads enqueue a background processing job
-- Worker updates video status from `uploaded` to `processing` to `ready`
-- Worker inserts placeholder transcript rows so search can be tested end to end before Whisper is integrated
-
-## Run
-
-Make sure Docker Desktop is open and running.
-
-```powershell
-cd "C:\Users\sarna\OneDrive\Desktop\search engine\ai-video-search-engine"
+```bash
 docker compose up --build
 ```
 
-Open:
+Available services:
+
+| Service      | URL                        |
+| ------------ | -------------------------- |
+| FastAPI      | http://localhost:8000      |
+| Swagger Docs | http://localhost:8000/docs |
+| Qdrant       | http://localhost:6333      |
+| PostgreSQL   | localhost:5432             |
+| Redis        | localhost:6379             |
+
+## Processing Flow
 
 ```text
-http://localhost:8000/docs
+Upload Video
+     ↓
+Store Metadata
+     ↓
+Create Background Job
+     ↓
+Celery Worker
+     ↓
+Generate Transcript Segments
+     ↓
+Store Results
+     ↓
+Search by Timestamp
 ```
 
-## Swagger Test Flow
+## Current Status
 
-1. Run `GET /health/db` to confirm PostgreSQL is connected.
-2. Run `POST /upload` with a video file.
-3. Copy the returned `video_id` and `job_id`.
-4. Run `GET /jobs/{job_id}` until the state is `SUCCESS`.
-5. Run `GET /status/{video_id}` and confirm status is `ready`.
-6. Run `GET /videos/{video_id}/segments` to see transcript rows.
-7. Run `POST /search` using the same `video_id`.
+Implemented:
 
-Example search body:
+* Upload pipeline
+* PostgreSQL integration
+* Redis and Celery processing
+* Status tracking
+* Transcript segment APIs
+* Search endpoint
+* Docker Compose deployment
 
-```json
-{
-  "video_id": "paste-video-id-here",
-  "query": "semantic search",
-  "limit": 5
-}
-```
+Planned integrations:
 
-## API List
+* Whisper transcription
+* Sentence Transformer embeddings
+* Qdrant semantic search
+* CLIP visual search
 
-- `GET /`
-- `GET /health/db`
-- `POST /upload`
-- `GET /videos`
-- `GET /videos/{video_id}`
-- `GET /status/{video_id}`
-- `GET /jobs/{job_id}`
-- `POST /videos/{video_id}/segments`
-- `GET /videos/{video_id}/segments`
-- `POST /search`
+## API Endpoints
 
-## Integration Notes For Teammates
+| Method | Endpoint                    | Description                |
+| ------ | --------------------------- | -------------------------- |
+| GET    | /                           | Service information        |
+| GET    | /health/db                  | Database health check      |
+| POST   | /upload                     | Upload a video             |
+| GET    | /videos                     | List uploaded videos       |
+| GET    | /videos/{video_id}          | Get video metadata         |
+| GET    | /status/{video_id}          | Processing status          |
+| GET    | /jobs/{job_id}              | Celery job status          |
+| POST   | /videos/{video_id}/segments | Create transcript segments |
+| GET    | /videos/{video_id}/segments | List transcript segments   |
+| POST   | /search                     | Search transcript content  |
 
-- DevOps can replace the worker placeholder with real FFmpeg extraction.
-- AI/ML can write Whisper transcript chunks into `transcript_segments` and Qdrant vectors.
-- Frontend can call `/upload`, poll `/status/{video_id}`, then call `/search` and seek to result timestamps.
+## Notes for Integration
+
+### Frontend
+
+* Upload videos through `/upload`
+* Poll `/status/{video_id}`
+* Use `/search` for timestamp retrieval
+* Seek the video player to returned timestamps
+
+### AI/ML
+
+* Replace placeholder transcript generation with Whisper output
+* Generate embeddings using Sentence Transformers
+* Store vectors in Qdrant
+* Extend search to semantic retrieval
+
+### DevOps
+
+* Extend worker pipeline with FFmpeg preprocessing
+* Manage deployment, monitoring, and reliability improvements
