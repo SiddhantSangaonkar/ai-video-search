@@ -1,69 +1,36 @@
-# DevOps & Preprocessing - Week 1
+# DevOps & Preprocessing Module (Weeks 1 - 5)
 
-Welcome to the **AI Video Search Engine** preprocessing module. This directory contains the core pipeline for extracting audio and video frames from uploaded media using **FFmpeg**.
-
----
-
-## 📋 Week 1 Objectives & Achievements
-
-- [x] **Install FFmpeg and test audio extraction**: Set up command-line calls to convert video audio to a 16kHz mono WAV format optimized for Whisper.
-- [x] **Learn frame extraction**: Configure periodic frame extraction at custom intervals (e.g., every 2 seconds) for visual embeddings.
-- [x] **Automate verification**: Created a python script (`extract.py`) that generates a dummy video locally and tests duration querying, audio extraction, and frame extraction end-to-end.
-- [x] **Docker setup**: Verified Docker and Docker Compose environment configuration.
+Welcome to the **AI Video Search Engine** Preprocessing & DevOps module. This directory houses the background worker pipeline and configuration files to extract video assets and host the containerized services.
 
 ---
 
-## 🛠 How It Works (FFmpeg CLI Commands)
+## 📋 Objectives & Achievements (Weeks 1 - 5)
 
-### 1. Retrieve Video Duration
-To fetch the precise duration of a video file without decoding it:
-```bash
-ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 input_video.mp4
-```
-* **`-v error`**: Suppress diagnostic logs and banner info.
-* **`-show_entries format=duration`**: Select only the duration entry from the metadata.
-* **`-of default=noprint_wrappers=1:nokey=1`**: Output format settings to output only the value, with no headers or keys.
-
-### 2. Extract Audio (Optimized for Whisper)
-Whisper works best with mono PCM 16-bit WAV files sampled at 16kHz:
-```bash
-ffmpeg -y -i input_video.mp4 -vn -acodec pcm_s16le -ar 16000 -ac 1 output_audio.wav
-```
-* **`-y`**: Overwrite the output file if it exists.
-* **`-vn`**: Disable video stream mapping (audio only).
-* **`-acodec pcm_s16le`**: Encode audio to raw 16-bit signed little-endian PCM.
-* **`-ar 16000`**: Force sample rate to 16000 Hz.
-* **`-ac 1`**: Downmix stereo or multi-channel audio to mono (1 channel).
-
-### 3. Periodic Frame Extraction (For Visual Embeddings)
-Extracting frames at regular intervals (e.g., 1 frame every 2 seconds) for visual indexing:
-```bash
-ffmpeg -y -i input_video.mp4 -vf "fps=1/2" -q:v 2 output_directory/frame_%04d.jpg
-```
-* **`-vf "fps=1/2"`**: Video filter to output `1/2` frames per second (1 frame every 2 seconds). To change the interval, use `fps=1/INTERVAL`.
-* **`-q:v 2`**: High quality scale (range 1-31, where 2 is near-lossless JPEG quality).
-* **`frame_%04d.jpg`**: Output naming scheme (e.g., `frame_0001.jpg`, `frame_0002.jpg`, etc.).
+- [x] **FFmpeg Pipeline (Week 1)**: Built functions to extract mono WAV audio files at 16kHz (optimized for Whisper speech-to-text) and periodically extract keyframe images (downscaled to 640px width to save space).
+- [x] **Celery Task Broker (Week 2)**: Wrapped FFmpeg functions into a **Celery** background worker using a **Redis** message broker.
+- [x] **FastAPI Connection (Week 2)**: Connected background task dispatching and polling endpoints to the FastAPI application.
+- [x] **Docker Compose Stack (Week 3)**: Designed a unified multi-container `docker-compose.yml` defining the FastAPI server, Celery worker, Redis queue, PostgreSQL database, Qdrant vector store, React frontend, and Flower monitor.
+- [x] **Visual Monitoring (Week 4)**: Integrated **Flower** to visually track Celery task state transitions, speeds, and failures.
+- [x] **Automate Test Suite (Week 4)**: Created an automated test suite ([test_preprocessing.py](file:///Users/meghana/ai_vsg/preprocessing/test_preprocessing.py)) using `pytest` to validate FFmpeg operations.
+- [x] **Unified Control Script (Week 5)**: Created the master controller script ([run.sh](file:///Users/meghana/ai_vsg/run.sh)) to manage local configuration files, diagnose Docker status, execute test suites, and launch the compose stack in a single command.
 
 ---
 
-## 🚀 Running the Week 1 Test Script
+## 🚀 DevOps Control Center (`run.sh`)
 
-You can verify the entire pipeline on your machine right now by running the automated script. It generates a synthetic video and runs the extraction processes.
+Use the wrapper script in the project root to control the development stack:
 
-```bash
-python3 preprocessing/extract.py
-```
-
-### Output Directory Structure
-Running the script generates a `test_output/` folder inside `preprocessing/`:
-```
-preprocessing/test_output/
-├── test_video.mp4       # The generated 6-second test video
-├── test_audio.wav       # The extracted 16kHz mono WAV file
-└── frames/              # Extracted JPEGs
-    ├── frame_0001.jpg   # Frame at t = 0s
-    ├── frame_0002.jpg   # Frame at t = 2s
-    └── frame_0003.jpg   # Frame at t = 4s
-```
+| Command | Action |
+| :--- | :--- |
+| `./run.sh` | Verify Docker and spin up the containerized application. |
+| `./run.sh --build` | Force rebuild the Docker container images and run. |
+| `./run.sh --test` | Execute the automated Python test suite. |
+| `./run.sh --down` | Tear down and remove all active containers. |
 
 ---
+
+## 🧪 Running Automated Tests
+
+To verify the extraction pipeline functions (audio formats, duration checking, frame intervals, error validation):
+```bash
+./run.sh --test
