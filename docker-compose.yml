@@ -83,13 +83,13 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./siddhant-frontend
       dockerfile: Dockerfile
     container_name: ai_vsg_frontend
     ports:
       - "5173:5173"
     volumes:
-      - ./frontend:/app
+      - ./siddhant-frontend:/app
       - /app/node_modules
     depends_on:
       - backend
