@@ -67,25 +67,3 @@ preprocessing/test_output/
 ```
 
 ---
-
-## 🐳 Docker Command Cheat Sheet (For Week 1 Practice)
-
-Here are the basic Docker commands you should familiarize yourself with during Week 1 in preparation for building our Compose stack:
-
-| Command | Description |
-| :--- | :--- |
-| `docker --version` | Verify Docker installation |
-| `docker run -d -p 6379:6379 redis:alpine` | Run Redis in the background (used for Celery in Week 2) |
-| `docker ps` | List all running Docker containers |
-| `docker logs <container_id>` | View logs of a running container |
-| `docker stop <container_id>` | Stop a running container |
-| `docker rm <container_id>` | Delete a stopped container |
-| `docker compose version` | Verify Docker Compose installation |
-
----
-
-## 🎯 Next Steps: Week 2 Preview
-In Week 2, we will:
-1. Wrap these FFmpeg functions into a **Celery** background worker.
-2. Hook Celery up with **Redis** as a broker.
-3. Expose background jobs to the FastAPI backend.
