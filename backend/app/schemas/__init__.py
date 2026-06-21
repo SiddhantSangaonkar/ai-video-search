@@ -1,0 +1,31 @@
+from app.schemas.video import (
+    DatabaseHealthResponse,
+    ErrorResponse,
+    JobStatusResponse,
+    MessageResponse,
+    SearchRequest,
+    SearchResponse,
+    SearchResult,
+    StatusResponse,
+    TranscriptSegmentCreate,
+    TranscriptSegmentResponse,
+    UploadResponse,
+    VideoListResponse,
+    VideoResponse,
+)
+
+__all__ = [
+    "DatabaseHealthResponse",
+    "ErrorResponse",
+    "JobStatusResponse",
+    "MessageResponse",
+    "SearchRequest",
+    "SearchResponse",
+    "SearchResult",
+    "StatusResponse",
+    "TranscriptSegmentCreate",
+    "TranscriptSegmentResponse",
+    "UploadResponse",
+    "VideoListResponse",
+    "VideoResponse",
+]

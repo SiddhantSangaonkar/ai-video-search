@@ -12,12 +12,20 @@ ENV/
 .pytest_cache/
 .phpunit.result.cache
 
+# Environment variables
+.env
+.env.*
+!.env.example
+
 # Local uploads and outputs
 backend/uploads/
+uploads/
 outputs/
 preprocessing/test_output/
 preprocessing/pytest_output/
 celery.log
+*.db
 
-# Environment variables
-.env
+# Frontend
+dist/
+node_modules/
