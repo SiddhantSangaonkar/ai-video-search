@@ -1,12 +1,31 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-.pytest_cache/
+*$py.class
+
+# Virtual environments
 .venv/
 venv/
+ENV/
+
+# Pytest
+.pytest_cache/
+.phpunit.result.cache
+
+# Environment variables
 .env
 .env.*
 !.env.example
+
+# Local uploads and outputs
+backend/uploads/
 uploads/
+outputs/
+preprocessing/test_output/
+preprocessing/pytest_output/
+celery.log
 *.db
+
+# Frontend
 dist/
 node_modules/
