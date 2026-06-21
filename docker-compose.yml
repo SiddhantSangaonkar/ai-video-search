@@ -19,12 +19,12 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: video_search
+      POSTGRES_DB: ai_vsg
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d video_search"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ai_vsg"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -48,7 +48,7 @@ services:
       - "8000:8000"
     environment:
       - PYTHONPATH=/app/backend
-      - DATABASE_URL=postgresql+psycopg://postgres:postgres@postgres:5432/video_search
+      - DATABASE_URL=postgresql+psycopg://postgres:postgres@postgres:5432/ai_vsg
       - REDIS_URL=redis://redis:6379/0
       - QDRANT_URL=http://qdrant:6333
       - UPLOAD_DIR=/app/backend/uploads
@@ -71,7 +71,7 @@ services:
     container_name: ai_vsg_celery_worker
     environment:
       - PYTHONPATH=/app/backend
-      - DATABASE_URL=postgresql+psycopg://postgres:postgres@postgres:5432/video_search
+      - DATABASE_URL=postgresql+psycopg://postgres:postgres@postgres:5432/ai_vsg
       - REDIS_URL=redis://redis:6379/0
       - QDRANT_URL=http://qdrant:6333
       - UPLOAD_DIR=/app/backend/uploads

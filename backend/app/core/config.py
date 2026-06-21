@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     app_name: str = "AI Video Search Engine API"
     app_env: str = "development"
     api_version: str = "0.3.0"
-    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/video_search"
+    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/ai_vsg"
     upload_dir: Path = Path("uploads")
     max_upload_mb: int = Field(default=1024, gt=0)
     backend_cors_origins: str = "http://localhost:3000,http://localhost:5173"
