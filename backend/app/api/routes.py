@@ -50,13 +50,13 @@ async def upload_video(
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> UploadResponse:
-    stored_filename, file_size = await save_upload_file(file, settings)
+    upload = await save_upload_file(file, settings)
 
     video = Video(
-        original_filename=file.filename or stored_filename,
-        stored_filename=stored_filename,
+        original_filename=file.filename or upload.stored_filename,
+        stored_filename=upload.stored_filename,
         content_type=file.content_type,
-        file_size=file_size,
+        file_size=upload.file_size,
         status=VideoStatus.uploaded,
     )
 
@@ -66,7 +66,7 @@ async def upload_video(
         db.refresh(video)
     except SQLAlchemyError as exc:
         db.rollback()
-        upload_path = Path(settings.upload_dir) / stored_filename
+        upload_path = Path(settings.upload_dir) / upload.stored_filename
         upload_path.unlink(missing_ok=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
