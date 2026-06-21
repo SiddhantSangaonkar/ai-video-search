@@ -571,6 +571,7 @@ export default function App() {
   const [searchError, setSearchError] = useState(null);
   const [videoSrc, setVideoSrc] = useState(null);
   const playerRef = useRef(null);
+  const [videoId, setVideoId] = useState(null);
 
   const handleVideoSelected = (file) => {
     const localUrl = URL.createObjectURL(file);
@@ -584,7 +585,7 @@ export default function App() {
     setSearchError(null);
 
     try {
-      const response = await VideoAPI.searchVideo(query);
+      const response = await VideoAPI.searchVideo(videoId, query);
       if (response.data && response.data.results && response.data.results.length > 0) {
         setSearchResults(response.data.results);
       } else {
@@ -609,8 +610,8 @@ export default function App() {
 
   const handleJumpToTime = (timeInSeconds) => {
     if (playerRef.current) {
-      playerRef.current.currentTime = timeInSeconds; 
-      playerRef.current.play(); 
+      playerRef.current.currentTime = timeInSeconds;
+      playerRef.current.play();
     }
   };
 
@@ -636,26 +637,30 @@ export default function App() {
       )} */}
 
       {/* PAGE 2: UPLOAD */}
-      {currentView === 'upload' && (
-        <div className="w-full pt-10 px-4">
-          
-          {/* This wrapper is now max-w-2xl to perfectly align with the Upload Card below it */}
-          <div className="w-full max-w-2xl mx-auto flex justify-start">
-            <button 
-              onClick={() => setCurrentView('intro')} 
-              className="text-slate-500 hover:text-blue-400 tracking-widest text-sm transition-colors flex items-center gap-2"
-            >
-              <span>←</span> BACK TO SYSTEM
-            </button>
-          </div>
+{currentView === 'upload' && (
+  <div className="w-full pt-10 px-4">
 
-          <UploadSection 
-            onVideoSelect={handleVideoSelected} 
-            onUploadSuccess={() => setCurrentView('search')} 
-          />
-          
-        </div>
-      )}
+    {/* This wrapper is now max-w-2xl to perfectly align with the Upload Card below it */}
+    <div className="w-full max-w-2xl mx-auto flex justify-start">
+      <button
+        onClick={() => setCurrentView('intro')}
+        className="text-slate-500 hover:text-blue-400 tracking-widest text-sm transition-colors flex items-center gap-2"
+      >
+        <span>←</span> BACK TO SYSTEM
+      </button>
+    </div>
+
+    <UploadSection 
+      onVideoSelect={handleVideoSelected}
+      // CHANGED: We now catch the ID and save it into your App state bucket before switching pages!
+      onUploadSuccess={(newVideoId) => {
+        setVideoId(newVideoId);
+        setCurrentView('search');
+      }} 
+    />
+
+  </div>
+)}
 
       {/* PAGE 3: SEARCH DASHBOARD (Integrated View) */}
       {currentView === 'search' && (
@@ -687,7 +692,7 @@ export default function App() {
           </div>
 
           {/* Error & Results Area */}
-          <div className="mb-12 min-h-[150px]">
+          <div className="mb-12 min-h-37.5">
             {isSearching && <p className="text-center text-blue-400 tracking-widest animate-pulse font-light">SCANNING NEURAL TRANSCRIPT...</p>}
 
             {searchError && (
@@ -710,18 +715,31 @@ export default function App() {
               ))}
             </div> */}
 
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {searchResults.map((result) => (
+                <ResultCard
+                  key={result.id}
+                  text={result.text}
+                  startTime={result.start_time}
+                  endTime={result.end_time}
+                  score={result.score}
+                  onClick={() => handleJumpToTime(result.start_time)}
+                />
+              ))}
+            </div> */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-  {searchResults.map((result) => (
-    <ResultCard 
-      key={result.id} 
-      text={result.text} 
-      startTime={result.start_time}
-      endTime={result.end_time}
-      score={result.score}
-      onClick={() => handleJumpToTime(result.start_time)} 
-    />
-  ))}
-</div>
+              {/* CHANGED: Added 'index' to use as the key since 'id' is gone */}
+              {searchResults.map((result, index) => (
+                <ResultCard 
+                  key={index} 
+                  text={result.snippet}           
+                  startTime={result.timestamp}    
+                  endTime={result.end_time}       
+                  score={result.confidence}       
+                  onClick={() => handleJumpToTime(result.timestamp)} 
+                />
+              ))}
+            </div>
           </div>
 
           {/* Central Video Player */}
