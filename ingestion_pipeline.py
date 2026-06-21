@@ -1,11 +1,16 @@
 import whisper
 from sentence_transformers import SentenceTransformer
+from qdrant_setup import insert_chunks_to_qdrant, search_and_deduplicate
 
-def run_ingestion_pipeline(audio_path: str, chunk_duration: float = 30.0, overlap: float = 5.0):
+embedding_model = SentenceTransformer("all-mpnet-base-v2")
+
+def run_ingestion_pipeline(video_id, audio_path: str, chunk_duration: float = 30.0, overlap: float = 5.0):
+    """ 
+    Transcribe audio, create chunks, generate embeddings, and store in Qdrant.
+    """
     whisper_model = whisper.load_model("base")
-    embedding_model = SentenceTransformer("all-mpnet-base-v2")
     
-    # transcribe audio to get segments
+    # transcribing audio to get segments
     print(f"Transcribing {audio_path}...")
     transcript_data = whisper_model.transcribe(audio_path)
     segments = transcript_data["segments"]
@@ -57,39 +62,47 @@ def run_ingestion_pipeline(audio_path: str, chunk_duration: float = 30.0, overla
             # Fallback if no clean segment breakdown exists in the overlap zone
             if not new_start_found:
                 current_start = current_end - overlap
-                
+
+    print("Uploading chunks to Qdrant...\n")
+    
+    insert_chunks_to_qdrant(video_id=video_id,chunks=processed_chunks)
     return processed_chunks
 
-if __name__ == "__main__":
-    
-    chunks = run_ingestion_pipeline("Recursion in 100 Seconds.mp3")
-    
-    print(f"\nSuccessfully generated {len(chunks)} overlapping chunks.")
-    # if chunks:
-    #     print("\n--- Example Data Structure for Chunk 0 ---")
-    #     print(f"Time: {chunks[0]['start_time']}s -> {chunks[0]['end_time']}s")
-    #     print(f"Snippet: {chunks[0]['text_snippet']}")
-    #     print(f"Embedding dimensions: {len(chunks[0]['embedding'])}") # Must be 768
-    
-    from qdrant_setup import insert_chunks_to_qdrant,search_and_deduplicate
 
-    print("\nInserting chunks into Qdrant...")
-    insert_chunks_to_qdrant(chunks)
-    print("Insertion complete!")
-    # Example search query
 
-    print("\n--- Semantic Search & Deduplication Testing ---")
-    query = "What is recursion?"
-    query_embedding = SentenceTransformer("all-mpnet-base-v2").encode(query).tolist()
-
-    # Execute the deduplicated search
-    clean_results = search_and_deduplicate(
-        query_vector=query_embedding, 
-        fetch_limit=10, 
-        time_threshold=15.0, 
-        final_limit=3
+def semantic_search(video_id, query, limit=5):
+    """
+    Executes semantic search against Qdrant
+    and returns deduplicated transcript matches.
+    """
+    query_vector = embedding_model.encode(query).tolist()
+    
+    return search_and_deduplicate(
+        query_vector=query_vector,
+        video_id=video_id,
+        fetch_limit=max(limit * 2, 10),
+        final_limit=limit
     )
 
-    print("\nSearch Results:")
-    for idx, result in enumerate(clean_results):
-        print(f"Result {idx + 1}: [{result['start_time']}s] Score: {result['score']} -> {result['text']}")
+
+
+#for testing :
+if __name__ == "__main__":
+
+    VIDEO_ID = "demo_video"
+
+    run_ingestion_pipeline(
+        video_id=VIDEO_ID,
+        audio_path="Recursion in 100 Seconds.mp3"
+    )
+
+    results = semantic_search(
+        video_id=VIDEO_ID,
+        query="What is recursion?"
+    )
+
+    print("\nResults:\n")
+
+    for result in results:
+        print(result)
+

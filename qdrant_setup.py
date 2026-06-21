@@ -1,24 +1,30 @@
+from uuid import uuid4
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
 
 client = QdrantClient(path="./qdrant_storage")
+COLLECTION_NAME = "video_transcripts"
 
-# client.create_collection(
-#     collection_name="video_transcripts",
-#     vectors_config=VectorParams(size=768, distance=Distance.COSINE)
-# )
+if not client.collection_exists(COLLECTION_NAME):
+    client.create_collection(
+        collection_name=COLLECTION_NAME,
+        vectors_config=VectorParams(size=768, distance=Distance.COSINE)
+    )
 
-# print(client.get_collections())
 
-
-def insert_chunks_to_qdrant(chunks):
+def insert_chunks_to_qdrant(video_id, chunks):
+    """
+    Stores transcript chunks for a specific video.
+    """
     points = []
     for chunk in chunks:
         points.append(
             PointStruct(
-                id=chunk["chunk_index"],
+                id=str(uuid4()),
                 vector=chunk["embedding"], 
                 payload={
+                    "video_id": str(video_id),
+                    "chunk_index": chunk["chunk_index"],
                     "start_time": chunk["start_time"],
                     "end_time": chunk["end_time"],
                     "text": chunk["text_snippet"]
@@ -26,24 +32,30 @@ def insert_chunks_to_qdrant(chunks):
             )
         )
     client.upsert(
-        collection_name="video_transcripts",
+        collection_name=COLLECTION_NAME,
         points=points
     )
 
-def search(query_vector, top_k=5):
+def search(query_vector,video_id, top_k=5):
     result = client.query_points(
-        collection_name="video_transcripts",
+        collection_name=COLLECTION_NAME,
         query=query_vector,
         limit=top_k,
     )
 
-    return result.points
+    filtered=[]
+    for pt in result.points:
+        if pt.payload["video_id"] == str(video_id):
+            filtered.append(pt)
+    
+    return filtered
+    
 
-def search_and_deduplicate(query_vector, fetch_limit=10, time_threshold=15.0, final_limit=3):
+def search_and_deduplicate(query_vector, video_id, fetch_limit=10, time_threshold=15.0, final_limit=5):
     """
     Fetches raw results and removes hits that are too close together in the video.
     """
-    raw_results = search(query_vector, top_k=fetch_limit)
+    raw_results = search(query_vector,video_id, top_k=fetch_limit)
     
     deduplicated_results = []
     
@@ -58,7 +70,6 @@ def search_and_deduplicate(query_vector, fetch_limit=10, time_threshold=15.0, fi
         
         if not is_duplicate:
             deduplicated_results.append({
-                "id": point.id,
                 "score": round(point.score, 4),
                 "start_time": hit_start,
                 "end_time": point.payload["end_time"],
@@ -69,3 +80,4 @@ def search_and_deduplicate(query_vector, fetch_limit=10, time_threshold=15.0, fi
             break
             
     return deduplicated_results
+
