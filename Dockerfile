@@ -4,10 +4,14 @@ FROM python:3.11-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
+
+# Upgrade pip to avoid hash-mismatch bugs in older pip versions
+RUN pip install --no-cache-dir --upgrade pip
 
 # Copy requirements files to leverage Docker caching
 COPY backend/requirements.txt /app/backend_requirements.txt
