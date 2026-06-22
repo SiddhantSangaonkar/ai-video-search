@@ -1,8 +1,10 @@
+import os
 from uuid import uuid4
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, PointStruct, VectorParams
+from qdrant_client.models import Distance, PointStruct, VectorParams, Filter, FieldCondition, MatchValue
 
-client = QdrantClient(path="./qdrant_storage")
+qdrant_url = os.environ.get("QDRANT_URL", "http://localhost:6333")
+client = QdrantClient(url=qdrant_url)
 COLLECTION_NAME = "video_transcripts"
 
 if not client.collection_exists(COLLECTION_NAME):
@@ -36,19 +38,22 @@ def insert_chunks_to_qdrant(video_id, chunks):
         points=points
     )
 
-def search(query_vector,video_id, top_k=5):
+def search(query_vector, video_id, top_k=5):
     result = client.query_points(
         collection_name=COLLECTION_NAME,
         query=query_vector,
+        query_filter=Filter(
+            must=[
+                FieldCondition(
+                    key="video_id",
+                    match=MatchValue(value=str(video_id))
+                )
+            ]
+        ),
         limit=top_k,
     )
 
-    filtered=[]
-    for pt in result.points:
-        if pt.payload["video_id"] == str(video_id):
-            filtered.append(pt)
-    
-    return filtered
+    return result.points
     
 
 def search_and_deduplicate(query_vector, video_id, fetch_limit=10, time_threshold=15.0, final_limit=5):
