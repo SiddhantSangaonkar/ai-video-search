@@ -11,6 +11,9 @@ from app.core.config import get_settings
 # Import preprocessing pipeline functions
 from preprocessing.extract import extract_audio, extract_frames, get_video_duration
 
+# import the ingestion pipeline function
+from app.services.ingestion_pipeline import run_ingestion_pipeline
+
 logger = get_task_logger(__name__)
 
 
@@ -53,29 +56,20 @@ def process_uploaded_video(self, video_id: str) -> dict[str, str]:
             f"audio={audio_path}, frames_count={len(frames)}"
         )
 
-        existing_segments = (
-            db.query(TranscriptSegment)
-            .filter(TranscriptSegment.video_id == video.id)
-            .count()
+        chunks = run_ingestion_pipeline(
+            video_id=str(video.id),
+            audio_path=audio_path
         )
-        if existing_segments == 0:
-            db.add_all(
-                [
-                    TranscriptSegment(
-                        video_id=video.id,
-                        start_time=0.0,
-                        end_time=min(30.0, duration),
-                        text=f"Uploaded video {video.original_filename} is queued for AI transcription and semantic search. Duration: {duration:.2f}s.",
-                        score=0.6,
-                    ),
-                    TranscriptSegment(
-                        video_id=video.id,
-                        start_time=min(30.0, duration),
-                        end_time=duration,
-                        text="This placeholder segment proves the backend search, ranking, timestamp, and database flow works before Whisper is connected.",
-                        score=0.7,
-                    ),
-                ]
+
+        for chunk in chunks:
+            db.add(
+                TranscriptSegment(
+                    video_id=video.id,
+                    start_time=chunk["start_time"],
+                    end_time=chunk["end_time"],
+                    text=chunk["text_snippet"],
+                    score=1.0
+                )
             )
 
         video.status = VideoStatus.ready
@@ -97,4 +91,3 @@ def process_uploaded_video(self, video_id: str) -> dict[str, str]:
         raise
     finally:
         db.close()
-
