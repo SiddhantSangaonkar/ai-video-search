@@ -1,6 +1,6 @@
 import whisper
 from sentence_transformers import SentenceTransformer
-from qdrant_setup import insert_chunks_to_qdrant, search_and_deduplicate
+from app.services.qdrant_setup import insert_chunks_to_qdrant, search_and_deduplicate
 
 embedding_model = SentenceTransformer("all-mpnet-base-v2")
 
