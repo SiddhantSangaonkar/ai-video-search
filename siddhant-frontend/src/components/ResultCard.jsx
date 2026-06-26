@@ -1,38 +1,52 @@
 export default function ResultCard({ text, startTime, endTime, score, onClick }) {
-  
-  // Helper function to turn raw seconds (75.0) into clock time (01:15)
-  const formatTime = (totalSeconds) => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = Math.floor(totalSeconds % 60);
-    // padStart ensures it always shows two digits (e.g., 05 instead of 5)
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  // Helper to format raw seconds into a clean MM:SS format
+  const formatTime = (timeInSeconds) => {
+    const mins = Math.floor(timeInSeconds / 60);
+    const secs = Math.floor(timeInSeconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Helper to color-code the AI's confidence score
+  const getScoreColor = (confidence) => {
+    if (confidence >= 0.9) return "text-emerald-500 dark:text-emerald-400";
+    if (confidence >= 0.7) return "text-amber-500 dark:text-amber-400";
+    return "text-slate-400 dark:text-slate-500";
   };
 
   return (
-    <div className="bg-slate-800/40 backdrop-blur-md border border-slate-700 hover:border-blue-500/50 p-5 rounded-xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] group flex flex-col justify-between">
-      <div>
-        <div className="flex justify-between items-start mb-3">
-          <div className="text-2xl font-light text-blue-400 tracking-widest font-mono">
+    <div 
+      onClick={onClick}
+      className="group cursor-pointer flex flex-col p-5 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 rounded-xl shadow-sm hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 transform hover:-translate-y-1"
+    >
+      {/* Header: Timestamp & Confidence Score */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-500/10 px-3 py-1 rounded-md transition-colors">
+          <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span className="text-sm font-semibold text-blue-700 dark:text-blue-400 font-mono tracking-wider">
             {formatTime(startTime)} - {formatTime(endTime)}
-          </div>
-          
-          {/* A cool UI bonus: showing Rupender's AI confidence score */}
-          <span className="text-[10px] tracking-widest uppercase text-slate-400 border border-slate-600 px-2 py-1 rounded">
-            Score: {score.toFixed(2)}
           </span>
         </div>
         
-        <p className="text-slate-300 text-sm leading-relaxed mb-6 font-light">
-          "{text}"
-        </p>
+        {/* Dynamic Score Indicator */}
+        <div className={`text-xs font-bold tracking-widest ${getScoreColor(score)}`}>
+          {(score * 100).toFixed(0)}% MATCH
+        </div>
       </div>
-      
-      <button 
-        onClick={onClick}
-        className="w-full py-2 border border-blue-500/30 text-blue-400 rounded-lg tracking-widest text-xs font-semibold uppercase hover:bg-blue-500/10 transition-colors"
-      >
-        Jump to {formatTime(startTime)}
-      </button>
+
+      {/* Body: The Spoken Transcript Snippet */}
+      <p className="flex-1 text-slate-600 dark:text-slate-300 text-sm leading-relaxed italic border-l-2 border-slate-200 dark:border-slate-600 pl-3">
+        "{text}"
+      </p>
+
+      {/* Footer: Hidden Action Hint that appears on hover */}
+      <div className="mt-4 flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <span className="text-xs text-blue-500 dark:text-blue-400 font-semibold tracking-widest flex items-center gap-1">
+          CLICK TO JUMP <span className="text-lg leading-none">→</span>
+        </span>
+      </div>
     </div>
   );
 }
